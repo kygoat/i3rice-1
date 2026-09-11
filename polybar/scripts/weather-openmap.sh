@@ -36,23 +36,27 @@ get_duration() {
 
 }
 
-KEY=""
-CITY=""
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/.weather-key" ]; then
+    source "$SCRIPT_DIR/.weather-key"
+fi
+KEY="${WEATHER_API_KEY:-}"
+CITY="${WEATHER_CITY:-}"
 UNITS="metric"
 SYMBOL="°"
 
 API="https://api.openweathermap.org/data/2.5"
 
-if [ ! -z $CITY ]; then
+if [ ! -z "$CITY" ]; then
     if [ "$CITY" -eq "$CITY" ] 2>/dev/null; then
         CITY_PARAM="id=$CITY"
     else
         CITY_PARAM="q=$CITY"
     fi
 
-    current=$(curl -sf "$API/weather?appid=$KEY&$CITY_PARAM&units=$UNITS")
-    #curl -s "https://api.openweathermap.org/data/2.5/onecall?lat=0&lon=0&appid=TOKEN&units=metric" | jq -r '.daily[1].temp.day'
-    forecast=$(curl -sf "$API/forecast?appid=$KEY&$CITY_PARAM&units=$UNITS&cnt=1")
+current=$(curl -sf -G "$API/weather" --data-urlencode "appid=$KEY" --data-urlencode "$CITY_PARAM" --data-urlencode "units=$UNITS")
+forecast=$(curl -sf -G "$API/forecast" --data-urlencode "appid=$KEY" --data-urlencode "$CITY_PARAM" --data-urlencode "units=$UNITS" --data-urlencode "cnt=1")
+
 else
     location=$(curl -sf https://location.services.mozilla.com/v1/geolocate?key=geoclue)
 
